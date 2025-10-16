@@ -9,3 +9,9 @@ test('front page can be opened', async ({ page }) => {
     )
   ).toBeVisible()
 })
+
+test('can navigate to individual pokemon page', async ({ page }) => {
+  await page.goto('')
+  await page.getByText('ivysaur').click()
+  await expect(page.getByText('chlorophyll')).toBeVisible()
+})
