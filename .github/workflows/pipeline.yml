@@ -45,6 +45,14 @@ jobs:
       - name: Trigger deployment
         if: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '#skip') }}
         run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
+      - name: Discord notification - Deployment successful
+        if: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '#skip') }}
+        run: |
+          curl -H "Content-Type: application/json" \
+               -d '{
+                 "content": "🚀 **Deployment Successful!**\n📝 Commit: `${{ github.event.head_commit.message }}`\n👤 Author: ${{ github.event.head_commit.author.name }}\n🔗 Repository: ${{ github.repository }}"
+               }' \
+               ${{ secrets.DISCORD_WEBHOOK }}
 
   tag_release:
     needs: [simple_deployment_pipeline]
@@ -56,3 +64,10 @@ jobs:
         uses: anothrNick/github-tag-action@1.75.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Discord notification - New version tagged
+        run: |
+          curl -H "Content-Type: application/json" \
+               -d '{
+                 "content": "🏷️ **New Version Released!**\n📝 Commit: `${{ github.event.head_commit.message }}`\n👤 Author: ${{ github.event.head_commit.author.name }}\n🔗 Repository: ${{ github.repository }}\n🎯 Version: Check latest tag for new version number!"
+               }' \
+               ${{ secrets.DISCORD_WEBHOOK }}
