@@ -2,8 +2,8 @@ name: Daily Health Check
 
 on:
   schedule:
-    # Run daily at 12:00 PM UTC (noon)
-    - cron: '0 12 * * *'
+    # Run daily at 12:15 PM Finnish time (9:15 UTC during summer, 10:15 UTC during winter)
+    - cron: '15 9 * * *'
   workflow_dispatch: # Allow manual triggering
 
 jobs:
