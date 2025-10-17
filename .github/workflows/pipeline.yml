@@ -20,9 +20,12 @@ jobs:
         run: npm install
       - name: Discord notification - Pipeline started
         if: ${{ github.event_name == 'push' }}
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          AUTHOR_NAME: ${{ github.event.head_commit.author.name }}
         run: |
           curl -X POST -H "Content-Type: application/json" \
-            -d '{"content": "🧪 **Pipeline started** for commit: `${{ github.event.head_commit.message }}`"}' \
+            -d "{\"content\": \"🧪 **Pipeline started** for commit by $AUTHOR_NAME\"}" \
             ${{ secrets.DISCORD_WEBHOOK }}
       - name: Check style
         run: npm run eslint
@@ -53,9 +56,11 @@ jobs:
         run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
       - name: Discord notification - Deployment successful
         if: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '#skip') }}
+        env:
+          AUTHOR_NAME: ${{ github.event.head_commit.author.name }}
         run: |
           curl -X POST -H "Content-Type: application/json" \
-            -d '{"content": "🚀 **Deployment Successful!** Commit: `${{ github.event.head_commit.message }}` by ${{ github.event.head_commit.author.name }}"}' \
+            -d "{\"content\": \"🚀 **Deployment Successful!** by $AUTHOR_NAME\"}" \
             ${{ secrets.DISCORD_WEBHOOK }}
 
   tag_release:
@@ -69,7 +74,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Discord notification - New version tagged
+        env:
+          AUTHOR_NAME: ${{ github.event.head_commit.author.name }}
         run: |
           curl -X POST -H "Content-Type: application/json" \
-            -d '{"content": "🏷️ **New Version Released!** Commit: `${{ github.event.head_commit.message }}` by ${{ github.event.head_commit.author.name }}"}' \
+            -d "{\"content\": \"🏷️ **New Version Released!** by $AUTHOR_NAME\"}" \
             ${{ secrets.DISCORD_WEBHOOK }}
