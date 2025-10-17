@@ -52,15 +52,24 @@ jobs:
           path: playwright-report/
           retention-days: 30
       - name: Trigger deployment
+        id: deploy
         if: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '#skip') }}
         run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
       - name: Discord notification - Deployment successful
-        if: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '#skip') }}
+        if: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '#skip') && success() }}
         env:
           AUTHOR_NAME: ${{ github.event.head_commit.author.name }}
         run: |
           curl -X POST -H "Content-Type: application/json" \
             -d "{\"content\": \"🚀 **Deployment Successful!** by $AUTHOR_NAME\"}" \
+            ${{ secrets.DISCORD_WEBHOOK }}
+      - name: Discord notification - Pipeline failed
+        if: ${{ always() && failure() && github.event_name == 'push' }}
+        env:
+          AUTHOR_NAME: ${{ github.event.head_commit.author.name }}
+        run: |
+          curl -X POST -H "Content-Type: application/json" \
+            -d "{\"content\": \"❌ **Pipeline Failed!** Something went wrong with the build/tests/deployment. Check the logs by $AUTHOR_NAME\"}" \
             ${{ secrets.DISCORD_WEBHOOK }}
 
   tag_release:
@@ -79,4 +88,12 @@ jobs:
         run: |
           curl -X POST -H "Content-Type: application/json" \
             -d "{\"content\": \"🏷️ **New Version Released!** by $AUTHOR_NAME\"}" \
+            ${{ secrets.DISCORD_WEBHOOK }}
+      - name: Discord notification - Version tagging failed
+        if: ${{ failure() }}
+        env:
+          AUTHOR_NAME: ${{ github.event.head_commit.author.name }}
+        run: |
+          curl -X POST -H "Content-Type: application/json" \
+            -d "{\"content\": \"❌ **Version Tagging Failed!** Could not create release tag by $AUTHOR_NAME\"}" \
             ${{ secrets.DISCORD_WEBHOOK }}
