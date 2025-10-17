@@ -2,8 +2,8 @@ name: Daily Health Check
 
 on:
   schedule:
-    # TEMPORARY: Run every 5 minutes for testing (will change back to daily)
-    - cron: '*/5 * * * *'
+    # Run daily at 12:00 PM UTC (noon)
+    - cron: '0 12 * * *'
   workflow_dispatch: # Allow manual triggering
 
 jobs:
